@@ -24,6 +24,8 @@
 ### Executable name
 ifeq ($(COMP),mingw)
 EXE = stockfish.exe
+else ifeq ($(COMP),emcc)
+EXE = stockfish.html
 else
 EXE = stockfish
 endif
@@ -122,6 +124,14 @@ ifeq ($(ARCH),x86-64-bmi2)
 	popcnt = yes
 	sse = yes
 	pext = yes
+endif
+
+ifeq ($(ARCH),web)
+	arch = any
+	debug = yes
+	bits = 64
+	prefetch = yes
+	sse = yes
 endif
 
 ifeq ($(ARCH),armv7)
@@ -226,6 +236,15 @@ ifeq ($(COMP),clang)
 	endif
 endif
 
+ifeq ($(COMP),emcc)
+	comp=emcc
+	CXX=emcc
+
+	EMCCFLAGS= -s USE_PTHREADS=1 -s WASM_MEM_MAX=1073741824 -s TOTAL_MEMORY=1073741824 -s PTHREAD_POOL_SIZE=4 -s WASM=0 -s ABORTING_MALLOC=0 -s EXPORT_NAME='Stockfish'
+	CXXFLAGS += -pedantic -Wextra -Wshadow -m$(bits) $(EMCCFLAGS)
+	LDFLAGS += -m$(bits) $(EMCCFLAGS)
+endif
+
 ifeq ($(comp),icc)
 	profile_make = icc-profile-make
 	profile_use = icc-profile-use
@@ -288,7 +307,7 @@ ifeq ($(optimize),yes)
 			CXXFLAGS += -fno-gcse -mthumb -march=armv7-a -mfloat-abi=softfp
 		endif
 	endif
-	
+
 	ifeq ($(comp),$(filter $(comp),gcc clang icc))
 		ifeq ($(KERNEL),Darwin)
 			CXXFLAGS += -mdynamic-no-pic
@@ -490,7 +509,7 @@ config-sanity:
 	@test "$(popcnt)" = "yes" || test "$(popcnt)" = "no"
 	@test "$(sse)" = "yes" || test "$(sse)" = "no"
 	@test "$(pext)" = "yes" || test "$(pext)" = "no"
-	@test "$(comp)" = "gcc" || test "$(comp)" = "icc" || test "$(comp)" = "mingw" || test "$(comp)" = "clang"
+	@test "$(comp)" = "gcc" || test "$(comp)" = "icc" || test "$(comp)" = "mingw" || test "$(comp)" = "clang" || test "$(comp)" = "emcc"
 
 $(EXE): $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(LDFLAGS)
@@ -535,4 +554,3 @@ icc-profile-use:
 	-@$(CXX) $(DEPENDFLAGS) -MM $(OBJS:.o=.cpp) > $@ 2> /dev/null
 
 -include .depend
-
