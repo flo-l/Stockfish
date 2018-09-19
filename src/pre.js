@@ -1,5 +1,8 @@
+var preRun = function() {
+  FS.init(Stdin, Stdout, Stderr);
+}
+
 var Module = {
-  print: function(text) { alert('stdout: ' + text) },
-  printErr: function(text) { alert('stderr: ' + text) },
   noInitialRun: true,
+  preRun: preRun,
 };
