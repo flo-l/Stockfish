@@ -242,7 +242,7 @@ ifeq ($(COMP),emcc)
 
 	EMCCFLAGS= -s USE_PTHREADS=1 -s WASM_MEM_MAX=1073741824 -s TOTAL_MEMORY=1073741824 -s PTHREAD_POOL_SIZE=4 -s WASM=0 -s ABORTING_MALLOC=0 -s EXPORT_NAME='Stockfish'
 	CXXFLAGS += -pedantic -Wextra -Wshadow -m$(bits) $(EMCCFLAGS)
-	LDFLAGS += -m$(bits) $(EMCCFLAGS)
+	LDFLAGS += -m$(bits) $(EMCCFLAGS) --pre-js pre.js
 endif
 
 ifeq ($(comp),icc)
